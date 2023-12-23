@@ -1,4 +1,4 @@
-const API_URL = './data/exercises.json';
+const API_URL = 'http://rahatchd.github.io/akara-demo/data/exercises.json';
 
 export class Store {
   static formatData(datum) {
