@@ -9,16 +9,13 @@ export class Table {
     tpr: '15%',
     cal: '10%',
     time: '25%'
-  }
+  };
 
   static FormatTimestamp(date) {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hourString = hours > 12 ? (hours % 12) : hours;
-    const ampm = hours < 12 ? 'am': 'pm';
-    return `${month}/${day} ${hourString}:${minutes}${ampm}`;
+    const options = {
+      month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
+    };
+    return new Intl.DateTimeFormat('en-US', options).format(date);
   }
 
   static FormatTable(exercises) {
@@ -36,7 +33,7 @@ export class Table {
     tbody,
     onSelect = (data) => console.log(data),
     onPaginate = (pagenum) => console.log(pagenum)
-    ) {
+  ) {
     this.tableDOM = document.getElementById('table');
     this.tbody = tbody;
     this.exercises = [];
@@ -48,19 +45,21 @@ export class Table {
   update = (exercises = []) => {
     this.exercises = exercises;
     this.render();
-  }
+  };
 
   select = (id) => {
     this.selected = id;
     this.onSelect(id);
-  }
+  };
 
   paginate = (page) => {
     this.onPaginate(page);
-  }
+  };
 
   render() {
-    while(this.tbody.firstChild) { this.tbody.removeChild(this.tbody.firstChild) };
+    while (this.tbody.firstChild) {
+      this.tbody.removeChild(this.tbody.firstChild)
+    }
     this.tableDOM.deleteTFoot();
     Table.FormatTable(this.exercises)
       .forEach((exercise, index) => {
@@ -84,10 +83,10 @@ export class Table {
           td.innerHTML = exercise[field];
           row.appendChild(td);
           td.setAttribute('width', Table.cellwidth[field]);
-        })
+        });
 
         this.tbody.appendChild(row);
       });
-      longtable(this.tableDOM, { 'perPage': MAX_SKELS }, this.paginate);
+    longtable(this.tableDOM, { 'perPage': MAX_SKELS }, this.paginate);
   }
 }

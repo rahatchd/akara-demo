@@ -4,30 +4,58 @@ import { Graph } from './dash/Graph.js';
 import { Table } from './dash/Table.js';
 import { Canvas } from './three/Canvas.js';
 import {
-  HEIGHT,
   WIDTH,
+  HEIGHT,
   DEPTH,
+  LIVE_CAMERA_POSITION,
+  LIVE_SKEL_POSITION,
+  LIVE_SPOTLIGHT_POSITION,
+  SAVED_CAMERA_OFFSET,
+  SAVED_SKEL_DY,
+  SAVED_SKEL_OFFSET,
+  SAVED_SKEL_POSITION,
+  SAVED_SKEL_SCALE,
+  SAVED_SPOTLIGHT_OFFSET
 } from './constants/CANVAS.js';
-import { Spotlight, Moonlight } from './three/lights.js';
+import { Spotlight, Moonlight } from './three/Lights.js';
 import { Camera } from './three/Camera.js';
 import { Skel } from './three/Skel.js';
 import { State } from './State.js';
+import { sampleLiveData } from "./dash/sampleLiveData.js";
+import { FPS, MAX_EMAIL } from "./constants/GLOBAL.js";
+import { Interact } from "./three/Interact.js";
 
-const MAX_EMAIL = 6;
+const state = new State();
 
+function setRotation(rotation) {
+  // Setting state.rotation serves no purpose right now
+  state.rotate(rotation);
+  liveSkel.rotate(state.rotation);
+  for (let i = 0; i < MAX_SKELS; i += 1) {
+    exerciseSkels[i].rotate(state.rotation);
+  }
+}
+
+function tapSkeleton(id) {
+  if (state.selectedId === -1) {
+    onSelect(id);
+  }
+}
 
 const skelElem = document.getElementById('webGLcanvas');
 const canvas = new Canvas(skelElem);
 const { scene, renderer } = canvas;
 
-const { spotlight, spotlightHelper } = new Spotlight();
+const { spotlight } = new Spotlight();
 scene.add(spotlight);
-// scene.add(spotlightHelper);
 const { moonlight } = new Moonlight();
 scene.add(moonlight);
 
-const { camera, cameraHelper } = new Camera(skelElem, spotlight, renderer);
-// scene.add(cameraHelper);
+const { camera } = new Camera(skelElem);
+let desiredCamera = LIVE_CAMERA_POSITION.clone();
+let desiredSpotlight = LIVE_SPOTLIGHT_POSITION.clone();
+
+new Interact(skelElem, setRotation, tapSkeleton, camera, scene);
 
 function handleResize() {
   const { clientWidth, clientHeight } = document.getElementById('webGLcanvas');
@@ -36,41 +64,27 @@ function handleResize() {
 
   renderer.setSize(clientWidth, clientHeight);
 }
-window.addEventListener('resize', handleResize, false)
 
-const liveSkel = new Skel(- (WIDTH / 20), 0, 3000);
+window.addEventListener('resize', handleResize, false);
+
+const liveSkel = new Skel(LIVE_SKEL_POSITION);
 scene.add(liveSkel.object3d);
 let exerciseSkels = [];
 for (let i = 0; i < MAX_SKELS; i += 1) {
-  const dy = 600 * i;
-  const x = WIDTH / 5;
-  const y = HEIGHT / 2 - (dy + 1800);
-  const z = DEPTH - 300;
-  const exerciseSkel = new Skel(x, y, z);
-  exerciseSkel.object3d.scale.set(0.2, 0.2, 0.2);
+  const dy = SAVED_SKEL_DY * i;
+  const x = SAVED_SKEL_POSITION.x;
+  const y = SAVED_SKEL_POSITION.y - (dy + SAVED_SKEL_OFFSET);
+  const z = SAVED_SKEL_POSITION.z;
+  const exerciseSkel = new Skel(new THREE.Vector3(x, y, z));
+  exerciseSkel.object3d.scale.set(SAVED_SKEL_SCALE, SAVED_SKEL_SCALE, SAVED_SKEL_SCALE);
   exerciseSkels.push(exerciseSkel);
   scene.add(exerciseSkel.object3d);
-  const exerciseLight = new Spotlight({x, y: y + 1, z: z - 200});
-  scene.add(exerciseLight.spotlight);
-}
-
-function onSelect(id) {
-  if (id === -1) {
-    camera.position.set(0, 0, -1);
-  }
-  else {
-    const selected = exerciseSkels[id % MAX_SKELS];
-    const { position } = selected.object3d;
-    const { x, y, z } = position;
-    camera.position.set(x, y, z - 400);
-  }
-  state.select(id);
-  graph.select(id);
 }
 
 let exercises = new Array(MAX_SKELS).fill([]);
 let tableData = [];
 let graphData = [];
+
 function onFetch(data) {
   const maxFrames = [];
   exercises = [];
@@ -78,6 +92,9 @@ function onFetch(data) {
   graphData = [];
   for (let i = 0; i < data.length; i += 1) {
     const { name, reps, tut, tpr, cal, time, motion, frames } = data[i];
+    for (let j = 0; j < frames.length; j += 1) {
+      frames[j] = Skel.normalize(frames[j]);
+    }
     tableData.push({ time, name, reps, tut, tpr, cal });
     graphData.push({ time, name, reps, motion });
     exercises.push(frames);
@@ -90,9 +107,28 @@ function onFetch(data) {
   }
   state.initialize(maxFrames);
   table.update(tableData);
-  graph.update(graphData);
-  onSelect(-1);
+  graph.updateSaved(graphData);
   console.log('exercises loaded');
+}
+
+function onSelect(id) {
+  const liveButton = document.getElementById('live-button');
+  if (id === -1) {
+    desiredCamera = LIVE_CAMERA_POSITION.clone();
+    desiredSpotlight = LIVE_SPOTLIGHT_POSITION.clone();
+    document.getElementById('motion').innerText = "Live Activity";
+    liveButton.disabled = true;
+  } else {
+    const selected = exerciseSkels[id % MAX_SKELS];
+    const { position } = selected.object3d;
+    const { x, y, z } = position;
+    desiredCamera = new THREE.Vector3(x + SAVED_CAMERA_OFFSET.x, y + SAVED_CAMERA_OFFSET.y, z + SAVED_CAMERA_OFFSET.z);
+    desiredSpotlight = new THREE.Vector3(x + SAVED_SPOTLIGHT_OFFSET.x, y + SAVED_SPOTLIGHT_OFFSET.y, z + SAVED_SPOTLIGHT_OFFSET.z);
+    document.getElementById('motion').innerText = "Exercise Replay";
+    liveButton.disabled = false;
+  }
+  state.select(id);
+  graph.select(id);
 }
 
 function onPaginate(pagenum) {
@@ -104,8 +140,7 @@ function onPaginate(pagenum) {
     if (i < exercises.length) {
       skelIndices.push(i);
       maxFrames.push(exercises[i].length);
-    }
-    else {
+    } else {
       skelIndices.push(-1);
       maxFrames.push(1);
     }
@@ -122,33 +157,57 @@ function onScrub(index) {
   state.trace(index);
 }
 
-function onRelease() {
-  state.release();
+function onToggle(play_state) {
+  state.toggle(play_state);
 }
 
 const store = new Store(onFetch);
-const state = new State();
-const graph = new Graph(onScrub, onRelease);
+const graph = new Graph(onScrub, onToggle);
+graph.updateLive(sampleLiveData);
+graph.select(-1);
 const table = new Table(document.getElementById('exercises'), onSelect, onPaginate);
 
 const liveButton = document.getElementById('live-button');
-liveButton.onclick = () => onSelect(-1);
+liveButton.disabled = true;
+liveButton.onclick = () => {
+  onSelect(-1);
+};
+
+if (!!window.EventSource) {
+  let source = new EventSource('/');
+  source.onmessage = function (msg) {
+    let liveData = JSON.parse(msg.data);
+    if (liveData.skel.length === 0) {
+      // Do nothing (This happens a lot by the way)
+    } else {
+      liveData.skel = Skel.normalize(liveData.skel);
+      graph.updateLive(liveData);
+      liveSkel.updateFrame(liveData.skel);
+    }
+  };
+}
 
 const emailButton = document.getElementById('email-button');
 const emailModal = new tingle.modal({
-  closeMethods: ['overlay', 'button', 'escape']
+  closeMethods: ['escape', 'button']
 });
 emailModal.setContent(document.getElementById('email-modal').innerHTML);
 const emailTbody = document.getElementById('selection-tbody');
 emailButton.onclick = () => {
-  while(emailTbody.firstChild) { emailTbody.removeChild(emailTbody.firstChild) };
+  while (emailTbody.firstChild) {
+    emailTbody.removeChild(emailTbody.firstChild)
+  }
   Table.FormatTable(tableData).slice(0, MAX_EMAIL)
     .forEach((exercise, index) => {
       const row = document.createElement('tr');
       const checkbox = document.createElement('input');
+      checkbox.className = 'regular-checkbox';
       checkbox.id = `ch-${index}`;
       checkbox.type = 'checkbox';
+      const checkboxLabel = document.createElement('label');
+      checkboxLabel.htmlFor = `ch-${index}`;
       row.appendChild(checkbox);
+      row.appendChild(checkboxLabel);
 
       const fields = Object.keys(exercise);
       fields.forEach(field => {
@@ -156,7 +215,7 @@ emailButton.onclick = () => {
         td.innerHTML = exercise[field];
         row.appendChild(td);
         td.setAttribute('width', Table.cellwidth[field]);
-      })
+      });
 
       emailTbody.appendChild(row);
     });
@@ -169,55 +228,80 @@ emailButton.onclick = () => {
       }
     }
     const toEmail = document.getElementById('to-email').value;
+    document.getElementById('to-email').value = '';
+    const firstName = document.getElementById('first-name').value;
+    document.getElementById('first-name').value = '';
+    const lastName = document.getElementById('last-name').value;
+    document.getElementById('last-name').value = '';
     if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(toEmail)) {
-      console.log({payload: {
-        email: toEmail,
-        data: selection
-      }});
-      // call email API here
+      let request = new XMLHttpRequest();
+      request.onload = function () {
+        // We could do more interesting things with the response
+        // or, we could ignore it entirely
+        console.log(request.responseText);
+      };
+      // We point the request at the appropriate command
+      request.open("POST", "/", true);
+      // We attach a payload
+      let payload = { email: toEmail, firstName: firstName, lastName: lastName, exercises: selection };
+
+      // and then we send it off
+      request.send(JSON.stringify(payload));
+
       emailModal.close();
     }
-  }
+  };
   emailModal.open();
 }
+  ;
 
-const stats = new Stats();
-stats.showPanel(0);
-stats.dom.style.position = 'relative';
-document.getElementById('debug').appendChild(stats.dom);
+//const stats = new Stats();
+//stats.showPanel(0);
+//stats.dom.style.position = 'relative';
+//document.getElementById('debug').appendChild(stats.dom);
+
+function panCamera() {
+  const cameraMovement = new THREE.Vector3().subVectors(desiredCamera, camera.position);
+  if (cameraMovement.length() >= 1) {
+    camera.position.copy(new THREE.Vector3().addVectors(camera.position, cameraMovement.multiplyScalar(1 / 10)));
+  }
+  const spotlightMovement = new THREE.Vector3().subVectors(desiredSpotlight, spotlight.position);
+  if (spotlightMovement.length() >= 1) {
+    spotlight.position.copy(new THREE.Vector3().addVectors(spotlight.position, spotlightMovement.multiplyScalar(1 / 10)));
+  }
+}
 
 let time = performance.now();
 let period = 0;
 let delta = 0;
-const FPS = 30;
 animate();
 
 store.getData();
 
 function animate() {
-  stats.begin();
+  //stats.begin();
 
   period = (performance.now() - time) / 1000.0;
   delta = Math.round(FPS * period);
   state.update(delta);
 
-  for (let i = 0; i < MAX_SKELS; i += 1) {
-    const skelIndex = state.skelIndices[i];
-    if (skelIndex >= 0) {
-      const exercise = exercises[skelIndex];
-      exerciseSkels[i].updateFrame(exercise[state.scrub[i]]);
+  if (delta > 0) {
+    for (let i = 0; i < MAX_SKELS; i += 1) {
+      const skelIndex = state.skelIndices[i];
+      if (skelIndex >= 0) {
+        const exercise = exercises[skelIndex];
+        exerciseSkels[i].updateFrame(exercise[state.scrub[i]]);
+      }
+      if (i === state.selectedId) {
+        graph.updateFrame(state.scrub[i]);
+      }
     }
-    if (i === state.selectedId) {
-      graph.updateFrame(state.scrub[i]);
-    }
-  }
-  
-  requestAnimationFrame(animate);
-  liveSkel.updateFrame();
-  renderer.render(scene, camera);
-  if (delta >= 1) {
-    time = performance.now();
   }
 
-  stats.end();
+  requestAnimationFrame(animate);
+  panCamera();
+  renderer.render(scene, camera);
+  time += delta * 1000 / FPS;
+
+  //stats.end();
 }

@@ -16,12 +16,12 @@ export class Canvas {
     elem.appendChild(this.renderer.domElement);
     const wall = new THREE.Mesh(
       new THREE.PlaneGeometry(WIDTH, HEIGHT),
-      new THREE.MeshPhongMaterial({ color: 0x81a1c1 })
+      new THREE.MeshBasicMaterial({ color: 0x4c566a })
     );
     wall.rotateY(Math.PI);
     wall.position.set(0, 0, DEPTH);
     wall.receiveShadow = true;
+    wall.name = "wall";
     this.scene.add(wall);
-    // this.scene.add(new THREE.AxesHelper(5000));
   }
 }
