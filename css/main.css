@@ -24,12 +24,13 @@ h2 {
 }
 
 #dash>div {
-  padding: 0 90px 20px 90px;
+  padding: 10px;
 }
 
 #graph {
   background: #8fbcbb;
   position: relative;
+  margin-top: 50px;
 }
 #name, #reps {
   font-size: 24px;
@@ -102,8 +103,8 @@ h2 {
 .hero {
   background: #4c566a;
   border-radius: 5px;
-  padding: 20px;
-  margin-top: 1em;
+  padding: 5px;
+  margin-top: 0.5em;
 }
 
 .btn {

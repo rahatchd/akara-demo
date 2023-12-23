@@ -116,7 +116,7 @@ export class Graph {
         this.chart.data.datasets[0].data = [];
         this.chart.data.datasets[1].data = [];
         this.chart.update();
-        this.name.innerHTML = '';
+        this.name.innerHTML = 'select an exercise';
         this.reps.innerHTML = '';
       }
     }

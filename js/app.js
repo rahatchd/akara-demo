@@ -184,7 +184,7 @@ emailButton.onclick = () => {
 const stats = new Stats();
 stats.showPanel(0);
 stats.dom.style.position = 'relative';
-document.getElementById('debug').appendChild(stats.dom);
+// document.getElementById('debug').appendChild(stats.dom);
 
 let time = performance.now();
 let period = 0;
