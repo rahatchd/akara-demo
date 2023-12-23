@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="./css/siiimple-toast.css"/>
+    <link rel="stylesheet" href="./css/tingle.min.css"/>
+    <link rel="stylesheet" href="./css/entireframework.min.css"/>
+    <link rel="stylesheet" href="./css/main.css"/>
+
+    <title>Akara Demo</title>
+
+  </head>
+
+  <body>
+
+    <section id="dash">
+      <div>
+
+        <div id="graph" class="hero">
+          <div id="name"></div>
+          <div id="reps"></div>
+          <h2>Form</h2>
+          <div class="row">
+            <div class="col c12">
+              <canvas id="chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div id="data" class="hero">
+          <h2>Exercises</h2>
+          <div>
+            <table id="table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Time</th>
+                  <th>Name</th>
+                  <th>Reps</th>
+                  <th>Time under Tension</th>
+                  <th>Time per Rep</th>
+                  <th>Calories burned</th>
+                </tr>
+              </thead>
+              <tbody id="exercises"/>
+            </table>
+          </div>
+        </div>
+
+        <div id="debug" class="hero">
+        </div>
+
+      </div>
+    </section>
+
+    <div id="webGLcanvas">
+      <div id="title">
+        <h1>akara</h1>
+        <p id="subtitle">
+          Automated Workout Tracking & Personal Training
+        </p>
+      </div>
+      <a id="live-button" class="smooth btn" href="#">
+        <i class="material-icons">live_tv</i>
+      </a>
+      <a id="email-button" class="smooth btn">
+        <i class="material-icons">receipt</i>
+      </a>
+    </div>
+
+    <div id="email-modal" style="display: none">
+      <h1>Workout Receipt</h1>
+      <span class="addon">@</span><input id="to-email" type="email" placeholder="john@example.com" />
+      <p>Please select the exercises you wish to save:</p>
+      <table id="selection-table">
+        <thead>
+          <tr>
+            <th />
+            <th>Time</th>
+            <th>Name</th>
+            <th>Reps</th>
+            <th>Time under Tension</th>
+            <th>Time per Rep</th>
+            <th>Calories burned</th>
+          </tr>
+        </thead>
+        <tbody id="selection-tbody" />
+      </table>
+      <a id="send-email" class="smooth btn btn-sm">Send</a>
+    </div>
+
+  </body>
+
+  <script src="./lib/siiimple-toast.min.js"></script>
+  <script src="./lib/socket.io.slim.js"></script>
+  <script src="./lib/Chart.min.js"></script>
+  <script src="./lib/longtable.js"></script>
+  <script src="./lib/three.min.js"></script>
+  <script src="./lib/stats.min.js"></script>
+  <script src="./lib/tingle.min.js"></script>
+  <script src="./js/app.js" type="module"></script>
+
+</html>

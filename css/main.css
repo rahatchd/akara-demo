@@ -1,0 +1,123 @@
+body {
+  text-align: center;
+  color: #eceff4;
+  background: #2e3440;
+}
+
+h1 {
+  margin: 0.1em 0;
+}
+
+h2 {
+  margin: 0.1em 0;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+}
+
+#dash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  overflow: auto;
+}
+
+#dash>div {
+  padding: 0 90px 20px 90px;
+}
+
+#graph {
+  background: #8fbcbb;
+  position: relative;
+}
+#name, #reps {
+  font-size: 24px;
+  position: absolute;
+  top: 35px;
+}
+#name {
+  left: 25px;
+}
+#reps {
+  right: 25px;
+}
+
+#table td {
+  background: #2e3440;
+}
+
+.paging-controls {text-align: center;}
+.paging-controls a {
+  color: #eceff4;
+  text-decoration: none;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.paging-controls a:visited {color: #2e3440;}
+.paging-controls .prev {
+  float: left;
+  color: #eceff4 !important;
+  text-decoration: none;
+}
+.paging-controls .prev:before {content: "< prev";}
+.paging-controls .next {
+  float: right;
+  color: #eceff4 !important;
+  text-decoration: none;
+}
+.paging-controls .next:after {content: "next >";}
+.paging-controls .elipsis:before {content: " ... ";}
+
+#live-button {
+  position: absolute;
+  top: 40px;
+  right: 10px;
+}
+
+#email-button {
+  position: absolute;
+  bottom: 40px;
+  right: 10px;
+}
+
+#webGLcanvas {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 50%;
+}
+
+#title {
+  position: absolute;
+  width: 100%;
+  top: 80px;
+}
+
+#subtitle {
+  margin: 0;
+}
+
+.hero {
+  background: #4c566a;
+  border-radius: 5px;
+  padding: 20px;
+  margin-top: 1em;
+}
+
+.btn {
+  background: #eceff4;
+  color: #4c566a;
+}
+
+#debug {
+  background: #ebcb8b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tingle-modal-box {
+  color: #2e3440;
+}
